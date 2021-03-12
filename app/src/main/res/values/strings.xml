@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Project Test</string>
+    <string name="map_key" translatable="false">
+        AIzaSyDc-CZwYwlem8ubPokBxHl_WXlIXBq62Qs
+    </string>
+</resources>
