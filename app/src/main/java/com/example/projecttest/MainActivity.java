@@ -32,7 +32,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView searchView;
     SupportMapFragment mapFragment;
     Location currentLocation;
-    FusedLocationProviderClient client;
+    FusedLocationProviderClient client; // to track current location
     private static final int REQUEST_CODE = 101;
 
     @Override
@@ -42,7 +42,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         client = LocationServices.getFusedLocationProviderClient(this);
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         getMyLocation();
-        //getCurrentLocation();
         getDesieredLocation();
 
     }
@@ -55,6 +54,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 String location = searchView.getQuery().toString();
                 List<Address> addressList = null;
                 if (location != null || !location.equals("")) {
+                    //geocoder class helps adding a new marker on a new location
                     Geocoder geocoder = new Geocoder(MainActivity.this);
                     try {
                         addressList = geocoder.getFromLocationName(location, 1);
@@ -62,6 +62,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         e.printStackTrace();
                     }
                     Address address = addressList.get(0);
+                    //adding the new marker
                     LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
                     map.addMarker(new MarkerOptions().position(latLng).title(location));
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
@@ -74,6 +75,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+        //I wrote new OnMapReadyCallback() to not get confused with the other method below
        mapFragment.getMapAsync(new OnMapReadyCallback() {
            @Override
            public void onMapReady(GoogleMap googleMap) {
@@ -83,6 +85,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getMyLocation() {
+        // this if statement checks if permission to access location is accepted
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -91,16 +94,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE);
             return;
         }
-        Task<Location> task = client.getLastLocation();
+        Task<Location> task = client.getLastLocation(); // get the last location the device was in (current location)
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(final Location location) {
                 if (location != null){
                     currentLocation = location;
+
+                    //show the latitude and longitude for the current location and display it as toast
                     Toast.makeText(getApplicationContext(),currentLocation.getLatitude()
                             + "---" + currentLocation.getLongitude(), Toast.LENGTH_SHORT).show();
-                    System.out.println(currentLocation.getLatitude()
-                            + "---" + currentLocation.getLongitude());
+//                    System.out.println(currentLocation.getLatitude()
+//                            + "---" + currentLocation.getLongitude());
+                    // get the map when everything is ready
                     mapFragment.getMapAsync(MainActivity.this);
 
                 }
@@ -111,14 +117,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        LatLng latLng = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
+        LatLng latLng = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()); // new latlng with the current location
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("You are here");
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,10));
-        googleMap.addMarker(markerOptions);
+        googleMap.addMarker(markerOptions); //add the marker
         //map = googleMap;
     }
 
+
+    // this method checks if the permission is granted then call getmylocation method
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode){
